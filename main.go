@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/Shobhit-Nagpal/go.chroma/internal/wav"
 	"log"
 	"os"
 )
@@ -16,6 +17,8 @@ func main() {
 		os.Exit(1)
 	}
 
-  wavAudio := NewWav()
+	wavAudio := wav.NewWav(audio)
 
+  fmt.Println(wavAudio.Channels())
+  fmt.Println(wavAudio.Freq())
 }

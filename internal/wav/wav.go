@@ -1,56 +1,88 @@
 package wav
 
-import "fmt"
+import (
+	"encoding/binary"
+	"fmt"
+)
 
 type Wav struct {
-	Id            []byte
-	TotalLength   int //Size of file  - 8
-	WaveFmt       []byte
-	Format        int
-	PCM           int16
-	Channels      int16
-	Freq          int   //Sampling frequency
-	BPS           int   //Bytes per second
-	BPC           int16 //Bytes per capture
-	BitsPerSample int16
-	Data          [4]byte
-	BytesInData   int
+	id            []byte
+	totalLength   uint32 //Size of file
+	fileType      string //"WAVE"
+	formatLength  uint16
+	formatType    uint16 // 1 is PCM
+	channels      uint16
+	freq          uint32 //Sampling frequency
+	byteRate      uint32
+	blockAlign    uint16
+	bps           uint16 //Bytes per sample
+	bpc           int16  //Bytes per capture
+	bitspersample int16
+	dataSize      uint32
 }
-
-const ID_BYTES = 4
-const WAVEFMT_BYTES = ID_BYTES + 1 + 8
 
 func NewWav(audio []byte) *Wav {
 	return &Wav{
-		Id:          audio[:ID_BYTES],
-		TotalLength: int(audio[ID_BYTES+1]),
-		WaveFmt:     audio[ID_BYTES+1 : WAVEFMT_BYTES],
-		Format:      int(audio[WAVEFMT_BYTES+1]),
+		id:           audio[:4],
+		totalLength:  binary.LittleEndian.Uint32(audio[4:8]),
+		fileType:     string(audio[8:12]),
+		formatLength: binary.LittleEndian.Uint16(audio[16:20]),
+		formatType:   binary.LittleEndian.Uint16(audio[20:22]),
+		channels:     binary.LittleEndian.Uint16(audio[22:24]),
+		freq:         binary.LittleEndian.Uint32(audio[24:28]),
+		byteRate:     binary.LittleEndian.Uint32(audio[28:32]),
+		blockAlign:   binary.LittleEndian.Uint16(audio[32:34]),
+		bps:          binary.LittleEndian.Uint16(audio[34:36]),
+		dataSize:     binary.LittleEndian.Uint32(audio[40:44]),
 	}
 }
 
-func (w *Wav) StringifyId() {
-	fmt.Printf("%s\n", w.Id)
+func (w *Wav) StringifyId() string {
+	return fmt.Sprintf("%s", w.id)
 }
 
-func (w *Wav) Length() int {
-	return w.TotalLength
+func (w *Wav) FileType() string {
+	return w.fileType
 }
 
-func (w *Wav) GetFormat() int {
-	return w.Format
+func (w *Wav) Length() uint32 {
+	return w.totalLength
 }
 
-func (w *Wav) GetBPS() int {
-	return w.BPS
+func (w *Wav) FormatLength() uint16 {
+	return w.formatLength
 }
 
-func (w *Wav) GetBPC() int16 {
-	return w.BPC
+func (w *Wav) BPS() uint16 {
+	return w.bps
 }
 
-func (w *Wav) GetFreq() int {
-	return w.Freq
+func (w *Wav) BPC() int16 {
+	return w.bpc
+}
+
+func (w *Wav) Freq() uint32 {
+	return w.freq
+}
+
+func (w *Wav) FormatType() uint16 {
+	return w.formatType
+}
+
+func (w *Wav) Channels() uint16 {
+	return w.channels
+}
+
+func (w *Wav) DataSize() uint32 {
+	return w.dataSize
+}
+
+func (w *Wav) ByteRate() uint32 {
+	return w.byteRate
+}
+
+func (w *Wav) BlockAlign() uint16 {
+	return w.blockAlign
 }
 
 //Positions   Sample Value         Description
