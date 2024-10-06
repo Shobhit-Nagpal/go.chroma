@@ -6,7 +6,7 @@ import (
 )
 
 type Wav struct {
-	id            []byte
+	id            []byte // RIFF
 	totalLength   uint32 //Size of file
 	fileType      string //"WAVE"
 	formatLength  uint16
@@ -17,11 +17,16 @@ type Wav struct {
 	blockAlign    uint16
 	bps           uint16 //Bytes per sample
 	bpc           int16  //Bytes per capture
-	bitspersample int16
+	bitsPerSample int16
 	dataSize      uint32
+	data          []float64 //Normalized audio between 1 and -1
 }
 
 func NewWav(audio []byte) *Wav {
+
+	audioSamples := extractAudioData(audio)
+	normalizedAudio := normalizeAudio(audioSamples)
+
 	return &Wav{
 		id:           audio[:4],
 		totalLength:  binary.LittleEndian.Uint32(audio[4:8]),
@@ -34,6 +39,7 @@ func NewWav(audio []byte) *Wav {
 		blockAlign:   binary.LittleEndian.Uint16(audio[32:34]),
 		bps:          binary.LittleEndian.Uint16(audio[34:36]),
 		dataSize:     binary.LittleEndian.Uint32(audio[40:44]),
+		data:         normalizedAudio,
 	}
 }
 
@@ -83,6 +89,10 @@ func (w *Wav) ByteRate() uint32 {
 
 func (w *Wav) BlockAlign() uint16 {
 	return w.blockAlign
+}
+
+func (w *Wav) AudioData() []float64 {
+	return w.data
 }
 
 //Positions   Sample Value         Description
